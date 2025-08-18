@@ -1,3 +1,4 @@
 import os
+import sys
 
-os.execve("C:/Windows/System32/cmd.exe", ["cmd.exe"], {})
+os.execve(sys.executable, [sys.executable, "-V"], {})
