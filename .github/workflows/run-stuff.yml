@@ -47,7 +47,6 @@ jobs:
       continue-on-error: true
       with:
         python-version: ${{ matrix.python }}
-      
 
     - name: Run stuff
       if: ${{ !cancelled() && steps.can-setup-python.outcome == 'success' }}
