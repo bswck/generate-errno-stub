@@ -1,5 +1,6 @@
 on: push
 
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -9,24 +10,8 @@ defaults:
     shell: bash
 
 jobs:
-  can-setup-python:
-    name: Test Python setup
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
-    steps:
-      - name: Try setting up Python
-        id: setup
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
   run-stuff:
-    name: Run stuff on ${{ matrix.os }} with Python ${{ matrix.python }}
-    needs: can-setup-python
-    if: needs.can-setup-python.result == 'success'
+    name: ${{ matrix.python }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -35,14 +20,18 @@ jobs:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      id: can-setup-python
+      continue-on-error: true
+      with:
+        python-version: ${{ matrix.python }}
+      
 
-      - name: Run stuff
-        run: |
-          python -X dev stuff.py
+    - name: Run stuff
+      if: ${{ !cancelled() && steps.can-setup-python.outcome == 'success' }}
+      run: |
+        python -X dev stuff.py
