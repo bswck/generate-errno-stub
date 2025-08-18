@@ -1,4 +1,4 @@
 import os
 import sys
 
-os.execve(sys.executable, [sys.executable, "-V"], {})
+os.execve(sys.executable, [sys.executable, "-V"], os.environ)
