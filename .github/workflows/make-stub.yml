@@ -96,7 +96,6 @@ jobs:
         name: out
         path: errno.pyi
 
-
   verify:
     needs: dedupe
     name: verify ${{ matrix.python }} ${{ matrix.os }}
