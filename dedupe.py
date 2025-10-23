@@ -31,10 +31,10 @@ annotation_tpl = "{name}: Final[Literal[{value}]]"
 type Errnos = dict[str, dict[tuple[int, int], dict[str, str]]]
 
 
-def get_errnos(script_path: Path) -> Errnos:
+def get_errnos(script_path: StrPath) -> Errnos:
     # {platform: {version: {name: value}}}
     errnos = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
-    script = script_path.read_text()
+    script = Path(script_path).read_text()
 
     for platform, version in product(platforms, versions):
         prev_version = None

@@ -58,7 +58,7 @@ jobs:
     - name: Display collected outputs
       run: |
         find . -name "errnos.py" -type f | while read -r file; do
-          cat "$file" >> errnos-combined.py
+          cat "$file" | tee -a errnos-combined.py
         done
 
     - name: Upload combined errnos
