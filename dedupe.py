@@ -12,7 +12,7 @@ from unittest.mock import patch
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
-platforms = ["other", "linux", "darwin", "win32"]
+platforms = ["linux", "darwin", "win32"]
 versions = [(3, 10), (3, 11), (3, 12), (3, 13), (3, 14)]
 
 current_indent = 0
@@ -21,37 +21,27 @@ platform_guard_tpl = "if sys.platform == {platform}:"
 version_guard_tpl = "if sys.version_info[:2] == {version}:"
 annotation_tpl = "{name}: Final[Literal[{value}]]"
 
-type Errnos = dict[str, dict[tuple[int, int], dict[str, str]]]
+type Errnos = dict[str | None, dict[tuple[int, int], dict[str, str]]]
 
 
-def get_errnos(script_path: StrPath) -> Errnos:
+def dedupe_from_script(script_path: StrPath) -> Errnos:
     # {platform: {version: {name: value}}}
-    errnos = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    by_platform = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    # {name: {value: {platform: [version, ...]}}}
+    by_name = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     script = Path(script_path).read_text()
 
     for platform, version in product(platforms, versions):
         prev_version = versions[max(0, versions.index(version) - 1)]
+
         with patch("sys.platform", platform), patch("sys.version_info", version):
             errnos_for_env = {}
             exec(script, {"sys": sys}, errnos_for_env)
+
             for name, value in sorted(errnos_for_env.items()):
-                if version is prev_version:
-                    errnos[platform][version][name] = value
-                elif prev_version_value := errnos[platform][prev_version].get(name):
-                    if prev_version_value != value:
-                        print(
-                            f"! errno.{name} differed on {platform} between versions {prev_version} and {version}:",
-                            file=sys.stderr,
-                        )
-                        print(
-                            f"! {prev_version}: {prev_version_value}",
-                            file=sys.stderr,
-                        )
-                        print(f"! {version}: {value}", file=sys.stderr)
-                    else:
-                        del errnos[platform][prev_version][name]
-                    errnos[platform][version][name] = value
-    return errnos
+                by_name[name][value][platform].append(version)
+    exit("wip")
+    return by_platform
 
 
 def emit(s: str) -> None:
@@ -85,7 +75,7 @@ def produce_deduped_stub(errnos: Errnos) -> None:
 
 
 def main(script_path: StrPath) -> None:
-    produce_deduped_stub(get_errnos(script_path))
+    produce_deduped_stub(dedupe_from_script(script_path))
 
 
 if __name__ == "__main__":
