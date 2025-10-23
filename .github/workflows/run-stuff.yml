@@ -1,7 +1,6 @@
 on: push
 name: Run stuff
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,15 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - windows-2025
-        - windows-2022
+        - macos-latest
+        - windows-latest
+        - ubuntu-latest
         python:
-        - '3.9'
-        - '3.10'
-        - '3.11'
-        - '3.12'
-        - '3.13'
-        - '3.14.0-rc.2'
+        - '3.14'
 
     steps:
     - name: Checkout code
@@ -43,3 +38,4 @@ jobs:
       if: ${{ !cancelled() && steps.can-setup-python.outcome == 'success' }}
       run: |
         python -X dev stuff.py
+
