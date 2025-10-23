@@ -69,7 +69,7 @@ jobs:
 
   dedupe:
     needs: combine
-    name: dedupe (using ${{ matrix.os }} (${{ matrix.python }}))
+    name: dedupe (using ${{ matrix.os }} ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
