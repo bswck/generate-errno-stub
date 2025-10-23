@@ -23,7 +23,7 @@ relaxed_annotation_tpl = "{name}: Final[int]"  # unused
 
 
 def emit(s: str) -> None:
-    print(" " * current_indent, s)
+    print(" " * current_indent + s)
 
 
 @contextmanager
