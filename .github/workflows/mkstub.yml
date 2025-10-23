@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   collate:
-    name: ${{ matrix.python }} ${{ matrix.os }}
+    name: collate ${{ matrix.python }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -58,7 +58,7 @@ jobs:
     - name: Display collected outputs
       run: |
         find . -name "errnos.py" -type f | while read -r file; do
-          cat "$file" >> combined.py
+          cat "$file" >> errnos-combined.py
         done
 
     - name: Upload combined errnos
@@ -69,7 +69,7 @@ jobs:
 
   dedupe:
     needs: combine
-    name: dedupe ${{ matrix.os }} (${{ matrix.python }})
+    name: dedupe (using ${{ matrix.os }} (${{ matrix.python }}))
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
