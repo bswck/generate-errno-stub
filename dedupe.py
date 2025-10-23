@@ -42,7 +42,7 @@ def get_errnos(script_path: StrPath) -> Errnos:
             prev_version = versions[versions.index(version) - 1]
         with patch("sys.platform", platform), patch("sys.version_info", version):
             errnos_for_env = {}
-            exec(script, errnos_for_env)
+            exec(script, errnos_for_env, {"sys": sys})
             for name, value in sorted(errnos_for_env.items()):
                 if version is None:
                     errnos[platform][version][name] = value
