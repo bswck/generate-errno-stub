@@ -38,7 +38,7 @@ class VersionRange(NamedTuple):
     versions: list[tuple[int, int]]
 
     def to_expression(self) -> str:
-        atom = "sys.version_info()[:2]"
+        atom = "sys.version_info[:2]"
         match self.versions:
             case [single]:
                 if single == all_versions[-1]:
