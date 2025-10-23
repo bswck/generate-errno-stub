@@ -51,6 +51,7 @@ def get_errnos(script_path: StrPath) -> Errnos:
                     else:
                         del errnos[platform][prev_version][name]
                     errnos[platform][version][name] = value
+    return errnos
 
 
 def emit(s: str) -> None:
