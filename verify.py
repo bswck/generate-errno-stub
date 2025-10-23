@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 pat = re.compile(r"(Final\[Literal\[(\d+)\]\])")
 
 
-def verify_stub(stub_path: StrPath) -> None:
+def verify_stub(stub_path: StrPath) -> int:
     stub_code = Path(stub_path).read_text()
     stub_code_reified = pat.sub(r"\g<1> = \g<2>", stub_code)
     expected: dict[str, int] = {}
@@ -41,13 +41,14 @@ def verify_stub(stub_path: StrPath) -> None:
         print("checks didn't pass :(", file=sys.stderr)
         for diff in diffs:
             print(diff, file=sys.stderr)
-        return
+        return 1
     print("checks passed!", file=sys.stderr)
+    return 0
 
 
-def main(stub_path: StrPath) -> None:
-    verify_stub(stub_path)
+def main(stub_path: StrPath) -> int:
+    return verify_stub(stub_path)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    raise SystemExit(main(sys.argv[1]))
