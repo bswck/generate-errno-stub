@@ -57,15 +57,16 @@ jobs:
 
     - name: Display collected outputs
       run: |
+        tee -a combined.py <<< 'import sys'
         find . -name "errnos.py" -type f | while read -r file; do
-          cat "$file" | tee -a errnos-combined.py
+          cat "$file" | tee -a combined.py
         done
 
     - name: Upload combined errnos
       uses: actions/upload-artifact@v4
       with:
-        name: output-combined
-        path: errnos-combined.py
+        name: combined
+        path: combined.py
 
   dedupe:
     needs: combine
@@ -87,4 +88,4 @@ jobs:
 
     - name: Generate deduped stub
       run: |
-        python dedupe.py output-combined/errnos-combined.py
+        python dedupe.py combined/combined.py
