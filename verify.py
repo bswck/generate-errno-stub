@@ -17,6 +17,8 @@ def verify_stub(stub_path: StrPath) -> int:
     stub_code = Path(stub_path).read_text()
     stub_code_reified = pat.sub(r"\g<1> = \g<2>", stub_code)
     expected: dict[str, int] = {}
+    print("running patched code:", file=sys.stderr)
+    print(stub_code_reified, file=sys.stderr)
     exec(stub_code_reified, expected)
     if not expected:
         msg = "found no expected codes"
