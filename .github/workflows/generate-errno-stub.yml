@@ -1,5 +1,5 @@
 on: push
-name: Run stuff
+name: Generate errno module stub
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,7 +10,7 @@ defaults:
     shell: bash
 
 jobs:
-  do:
+  collate:
     name: ${{ matrix.python }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -37,19 +37,19 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
 
-    - name: Run stuff
+    - name: Collate errnos
       if: ${{ !cancelled() && steps.can-setup-python.outcome == 'success' }}
       run: |
-        python stuff.py | tee output.py
+        python collate.py | tee errnos.py
 
     - name: Upload output
       uses: actions/upload-artifact@v4
       with:
-        name: output-${{ matrix.os }}-${{ matrix.python }}
-        path: output.py
+        name: errnos-${{ matrix.os }}-${{ matrix.python }}
+        path: errnos.py
 
   combine:
-    needs: do
+    needs: collate
     runs-on: ubuntu-latest
     steps:
     - name: Download all artifacts
@@ -58,12 +58,31 @@ jobs:
     - name: Display collected outputs
       run: |
         echo $'import sys\nfrom typing import Final, Literal\n' >> combined.py
-        find . -name "output.py" -type f | while read -r file; do
+        find . -name "errnos.py" -type f | while read -r file; do
           cat "$file" >> combined.py
         done
 
-    - name: Upload combined output
+    - name: Upload combined errnos
       uses: actions/upload-artifact@v4
       with:
         name: output-combined
-        path: combined.py
+        path: errnos-combined.py
+
+  dedupe:
+    needs: combine
+    name: dedupe ${{ matrix.os }} (${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - ubuntu-latest
+        python:
+        - '3.14'
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate deduped stub
+      run: |
+        python dedupe.py output-combined/errnos-combined.py
