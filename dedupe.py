@@ -3,7 +3,12 @@ from collections import defaultdict
 from collections.abc import Generator
 from contextlib import contextmanager
 from itertools import product
+from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from _typeshed import StrPath
 
 platforms = ["other", "linux", "darwin", "win32"]
 versions = [
@@ -24,11 +29,10 @@ annotation_tpl = "{name}: Final[Literal[{value}]]"
 type Errnos = dict[str, dict[tuple[int, int], dict[str, str]]]
 
 
-def get_errnos() -> Errnos:
+def get_errnos(script_path: Path) -> Errnos:
     # {platform: {version: {name: value}}}
     errnos = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
-
-    combined_errnos_script = sys.argv[1]
+    script = script_path.read_text()
 
     for platform, version in product(platforms, versions):
         prev_version = None
@@ -36,7 +40,7 @@ def get_errnos() -> Errnos:
             prev_version = versions[versions.index(version) - 1]
         with patch("sys.platform", platform), patch("sys.version_info", version):
             errnos_for_env = {}
-            exec(combined_errnos_script, errnos_for_env)
+            exec(script, errnos_for_env)
             for name, value in sorted(errnos_for_env.items()):
                 if version is None:
                     errnos[platform][version][name] = value
@@ -47,7 +51,8 @@ def get_errnos() -> Errnos:
                             file=sys.stderr,
                         )
                         print(
-                            f"! {prev_version}: {prev_version_value}", file=sys.stderr,
+                            f"! {prev_version}: {prev_version_value}",
+                            file=sys.stderr,
                         )
                         print(f"! {version}: {value}", file=sys.stderr)
                     else:
@@ -85,9 +90,9 @@ def produce_deduped_stub(errnos: Errnos) -> None:
                             emit(annotation_tpl.format(name=name, value=value))
 
 
-def main() -> None:
-    produce_deduped_stub(get_errnos())
+def main(script_path: StrPath) -> None:
+    produce_deduped_stub(get_errnos(script_path))
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])
