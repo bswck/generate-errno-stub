@@ -3,9 +3,9 @@ import sys
 
 from textwrap import indent
 
-guard = f'if sys.platform == "{sys.platform}":'
+guard = f'if sys.platform == "{sys.platform}" and sys.version_info[:2] == {tuple(sys.version_info)[:2]}:'
 anns = []
-tpl = "{name}: Final[Literal[{val}]]"
+tpl = "{name}: Final[Literal[{val}]] = {val}"
 
 for name, val in vars(errno).items():
     if name.isupper():

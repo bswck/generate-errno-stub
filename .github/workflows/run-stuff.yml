@@ -5,12 +5,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# defaults:
-#   run:
-#     shell: bash
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  run-stuff:
+  do:
     name: ${{ matrix.python }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -22,7 +22,10 @@ jobs:
         - ubuntu-latest
         python:
         - '3.14'
-
+        - '3.13'
+        - '3.12'
+        - '3.11'
+        - '3.10'
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -37,5 +40,23 @@ jobs:
     - name: Run stuff
       if: ${{ !cancelled() && steps.can-setup-python.outcome == 'success' }}
       run: |
-        python -X dev stuff.py
+        python stuff.py | tee output.py
 
+    - name: Upload output
+      uses: actions/upload-artifact@v4
+      with:
+        name: output-${{ matrix.os }}-${{ matrix.python }}
+        path: output.py
+
+  combine:
+    needs: do
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Display collected outputs
+      run: |
+        find . -name "*.py" -type f | while read -r file; do
+          cat "$file"
+        done
