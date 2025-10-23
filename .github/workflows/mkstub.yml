@@ -1,5 +1,5 @@
 on: push
-name: Generate errno module stub
+name: Make stub
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -80,6 +80,9 @@ jobs:
         python:
         - '3.14'
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Download all artifacts
       uses: actions/download-artifact@v4
 
