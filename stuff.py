@@ -9,12 +9,13 @@ code = urllib.request.urlopen(
 ).read().decode()
 
 os_relevant = {}
-exec(code.replace("Final[int]", "Final[int] = ..."), ns)
+exec(code.replace("Final[int]", "Final[int] = ..."), os_relevant)
 
 for name, value in vars(errno).items():
     if name in os_relevant:
         code = re.sub(pat.format(name=name), rf"\g<1>[Literal[{value}]]", code)
 
 print(code)
+
 
 
