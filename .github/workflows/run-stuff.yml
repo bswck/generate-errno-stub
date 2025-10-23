@@ -57,6 +57,13 @@ jobs:
 
     - name: Display collected outputs
       run: |
+        echo $'import sys\nfrom typing import Final, Literal\n' >> combined.py
         find . -name "*.py" -type f | while read -r file; do
-          cat "$file"
+          cat "$file" >> combined.py
         done
+
+    - name: Upload combined output
+      uses: actions/upload-artifact@v4
+      with:
+        name: output-combined
+        path: output.py
