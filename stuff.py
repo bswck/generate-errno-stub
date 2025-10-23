@@ -1,21 +1,16 @@
 import errno
-import re
-import urllib.request
+import sys
 
-pat = r"({name}: Final)\[(int)\]"
+from textwrap import indent
 
-code = urllib.request.urlopen(
-    "https://raw.githubusercontent.com/python/typeshed/c7f70d8ac9310823a2fe5bbe0d276bac9eb314d3/stdlib/errno.pyi"
-).read().decode()
+guard = f'if sys.platform == "{sys.platform}":'
+anns = []
+tpl = "{name}: Final[Literal[{val}]]"
 
-os_relevant = {}
-exec(code.replace("Final[int]", "Final[int] = ..."), os_relevant)
+for name, val in vars(errno).items():
+    if name.isupper():
+        anns.append(tpl.format(name=name, val=val))
 
-for name, value in vars(errno).items():
-    if name in os_relevant:
-        code = re.sub(pat.format(name=name), rf"\g<1>[Literal[{value}]]", code)
-
-print(code)
-
-
-
+ann_code = "\n".join(anns)
+full_block = "\n".join([guard, indent(ann_code, " " * 4)])
+print(full_block)
