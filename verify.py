@@ -26,6 +26,8 @@ def verify_stub(stub_path: StrPath) -> int:
     all_expected = sorted(
         [f"{name} = {val}" for name, val in expected.items() if name.isupper()]
     )
+    print("\nexpecting:", file=sys.stderr)
+    print("\n".join(all_expected) + "\n", file=sys.stderr)
     import errno
 
     all_covered: list[str] = []
