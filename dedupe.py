@@ -74,7 +74,7 @@ class PlatformRange(NamedTuple):
                     [
                         f"{atom} == {platform.join('""')}"
                         for platform in targeted_platforms
-                    ]
+                    ],
                 )
             case _:
                 raise AssertionError("no platforms")
@@ -82,7 +82,9 @@ class PlatformRange(NamedTuple):
 
 def dedupe_from_script(script_path: StrPath) -> None:
     # {name: {value: {platform: [version, ...]}}}
-    by_name: dict[str, dict[int, dict[str, list[tuple[int, int]]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    by_name: dict[str, dict[int, dict[str, list[tuple[int, int]]]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(list)),
+    )
     script = Path(script_path).read_text()
 
     for platform, version in product(all_platforms, all_versions):
@@ -111,7 +113,7 @@ def dedupe_from_script(script_path: StrPath) -> None:
                 version_clauses.add(version_clause)
             if len(version_clauses) > 1:
                 raise AssertionError(
-                    "same value of same errno was introduced in different python version"
+                    "same value of same errno was introduced in different python version",
                 )
             relevant_clauses = list(filter(bool, (platform_clause, version_clause)))
             clause = " and ".join(
@@ -119,13 +121,13 @@ def dedupe_from_script(script_path: StrPath) -> None:
                     subclause.join(
                         "()"
                         if " or " in subclause and len(relevant_clauses) > 1
-                        else ("", "")
+                        else ("", ""),
                     )
                     for subclause in relevant_clauses
-                ]
+                ],
             )
             conditional_blocks[clause].append(
-                literal_annotation_tpl.format(name=name, value=value)
+                literal_annotation_tpl.format(name=name, value=value),
             )
 
     for condition, statements in conditional_blocks.items():

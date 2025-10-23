@@ -88,4 +88,40 @@ jobs:
 
     - name: Generate deduped stub
       run: |
-        python dedupe.py combined/combined.py
+        python dedupe.py combined/combined.py | tee errno.pyi
+
+    - name: Upload deduped stub
+      uses: actions/upload-artifact@v4
+      with:
+        name: out
+        path: errno.pyi
+
+
+  verify:
+    needs: dedupe
+    name: verify ${{ matrix.python }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - macos-latest
+        - windows-latest
+        - ubuntu-latest
+        python:
+        - '3.14'
+        - '3.13'
+        - '3.12'
+        - '3.11'
+        - '3.10'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Verify generated stub
+      run: |
+        python verify.py out/errno.pyi
