@@ -58,7 +58,7 @@ jobs:
     - name: Display collected outputs
       run: |
         echo $'import sys\nfrom typing import Final, Literal\n' >> combined.py
-        find . -name "*.py" -type f | while read -r file; do
+        find . -name "output.py" -type f | while read -r file; do
           cat "$file" >> combined.py
         done
 
