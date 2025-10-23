@@ -13,14 +13,7 @@ if TYPE_CHECKING:
     from _typeshed import StrPath
 
 platforms = ["other", "linux", "darwin", "win32"]
-versions = [
-    None,
-    (3, 10),
-    (3, 11),
-    (3, 12),
-    (3, 13),
-    (3, 14),
-]  # first version always None
+versions = [(3, 10), (3, 11), (3, 12), (3, 13), (3, 14)]
 
 current_indent = 0
 indent_width = 4
@@ -37,14 +30,12 @@ def get_errnos(script_path: StrPath) -> Errnos:
     script = Path(script_path).read_text()
 
     for platform, version in product(platforms, versions):
-        prev_version = None
-        if version:
-            prev_version = versions[versions.index(version) - 1]
+        prev_version = versions[max(0, versions.index(version) - 1)]
         with patch("sys.platform", platform), patch("sys.version_info", version):
             errnos_for_env = {}
-            exec(script, errnos_for_env, {"sys": sys})
+            exec(script, {"sys": sys}, errnos_for_env)
             for name, value in sorted(errnos_for_env.items()):
-                if version is None:
+                if version is prev_version:
                     errnos[platform][version][name] = value
                 elif prev_version_value := errnos[platform][prev_version].get(name):
                     if prev_version_value != value:
