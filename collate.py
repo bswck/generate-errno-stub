@@ -1,6 +1,5 @@
 import errno
 import sys
-
 from textwrap import indent
 
 guard = f'if sys.platform == "{sys.platform}" and sys.version_info[:2] == {tuple(sys.version_info)[:2]}:'

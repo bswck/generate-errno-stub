@@ -1,9 +1,9 @@
-from contextlib import contextmanager
 import sys
-from itertools import product
-from typing import Generator
-from unittest.mock import patch
 from collections import defaultdict
+from collections.abc import Generator
+from contextlib import contextmanager
+from itertools import product
+from unittest.mock import patch
 
 platforms = ["other", "linux", "darwin", "win32"]
 versions = [
@@ -23,9 +23,10 @@ annotation_tpl = "{name}: Final[Literal[{value}]]"
 
 type Errnos = dict[str, dict[tuple[int, int], dict[str, str]]]
 
+
 def get_errnos() -> Errnos:
     # {platform: {version: {name: value}}}
-    errnos = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {})))
+    errnos = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
 
     combined_errnos_script = sys.argv[1]
 
@@ -45,7 +46,9 @@ def get_errnos() -> Errnos:
                             f"! errno.{name} differed on {platform} between versions {prev_version} and {version}:",
                             file=sys.stderr,
                         )
-                        print(f"! {prev_version}: {prev_version_value}", file=sys.stderr)
+                        print(
+                            f"! {prev_version}: {prev_version_value}", file=sys.stderr,
+                        )
                         print(f"! {version}: {value}", file=sys.stderr)
                     else:
                         del errnos[platform][prev_version][name]
