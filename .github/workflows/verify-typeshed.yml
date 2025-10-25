@@ -1,0 +1,50 @@
+on: push
+name: Verify typeshed stub
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: verify typeshed ${{ matrix.python }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+        - macos-latest
+        - windows-latest
+        - ubuntu-latest
+        python:
+        - '3.14'
+        - '3.13'
+        - '3.12'
+        - '3.11'
+        - '3.10'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Checkout only errno.pyi from python/typeshed
+      uses: actions/checkout@v5
+      with:
+        repository: python/typeshed
+        ref: main
+        sparse-checkout: stdlib/errno.pyi
+        sparse-checkout-cone-mode: false
+        path: typeshed
+        fetch-depth: 1
+        filter: blob:none
+            
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Verify typeshed stub
+      run: |
+        python verify.py typeshed/stdlib/errno.pyi
