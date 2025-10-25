@@ -3,6 +3,7 @@ from __future__ import annotations
 import difflib
 import re
 import sys
+import errno
 from bisect import insort
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -10,16 +11,18 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from _typeshed import StrPath
 
-pat = re.compile(r"(Final\[Literal\[(\d+)\]\])")
+literal_pattern = re.compile(r"(Final\[Literal\[(\d+)\]\])")
+general_pattern = re.compile(r"(([\w]+): Final\[int\])")
 
 
 def verify_stub(stub_path: StrPath) -> int:
     stub_code = Path(stub_path).read_text()
-    stub_code_reified = pat.sub(r"\g<1> = \g<2>", stub_code)
+    stub_code = literal_pattern.sub(r"\g<1> = \g<2>", stub_code)
+    stub_code = general_pattern.sub(r"\g<1> = errno.\g<2>", stub_code)
     expected: dict[str, int] = {}
     print("running patched code:", file=sys.stderr)
-    print(stub_code_reified, file=sys.stderr)
-    exec(stub_code_reified, expected)
+    print(stub_code, file=sys.stderr)
+    exec(stub_code, {"errno": errno}, expected)
     if not expected:
         msg = "found no expected codes"
         raise AssertionError(msg)
@@ -28,8 +31,6 @@ def verify_stub(stub_path: StrPath) -> int:
     )
     print("\nexpecting:", file=sys.stderr)
     print("\n".join(all_expected) + "\n", file=sys.stderr)
-    import errno
-
     all_covered: list[str] = []
     all_extras: list[str] = []
     for name, val in vars(errno).items():
